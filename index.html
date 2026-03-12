@@ -352,10 +352,11 @@
 <div id="header">
     <div class="status-dot" title="สถานะสัญญาณ" id="dot"></div>
     <input type="text" onmouseover="this.style.transform='scale(1.02)';" onmouseout="this.style.transform='scale(1)';" title="ชื่อผู้ใช้" id="user-name" value="User" style="padding:13px 12px;" onchange="updateMyName()">
-    <div style="display:flex; gap:2px; background:#111; padding:2px; border-radius:4px;">
+    <div style="display:flex; gap:3px; background:#111; padding:2px; border-radius:4px;">
         <input type="password" onmouseover="this.style.transform='scale(1.02)';" onmouseout="this.style.transform='scale(1)';" title="ID ของเรา" id="my-id-display" readonly style="width: 120px; border:none; text-align: center;">
         <button onclick="toggleId('my-id-display')" style="padding:4px 8px;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="แสดง/ซ่อน ID">👁️</button>
         <button onclick="copyMyId()" style="padding:10px 14px;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="คัดลอก ID">📋</button>
+        <button onclick="toggleMic()" id="mic-btn" style="background:#f44336; color:white; padding:10px 14px;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="เปิด/ปิดไมโครโฟน">🎤 Mic Off</button>
     </div>
     <div style="flex:1"></div>
     <select id="stream-mode" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="โหมดการสตรีม" onchange="updateStreamingParameters()">
@@ -370,7 +371,7 @@
         <option value="1440">2K</option>
         <option value="2160">4K</option>
     </select>
-    <button onclick="toggleSystemAudio()" id="system-audio-btn" style="background:#444; color:white; display:none;">🔊 System: On</button>
+    <button onclick="toggleSystemAudio()" id="system-audio-btn" style="background:#444; color:white; display:none;" title="แชร์เสียงระบบ (ทำให้ไมค์ชัดขึ้นด้วย)">🔊 System: On</button>
     <label style="background:#333; padding:10px 10px; border-radius:4px; font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer; border:1px solid #555;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" title="โหมดแรงแบบไม่ประหยัดเน็ต (High Bitrate) ">
         <input type="checkbox"  title="โหมดแรงแบบไม่ประหยัดเน็ต (High Bitrate) " id="unlimited-mode" checked> 🚀 โหมดแรง
     </label> 
@@ -436,7 +437,7 @@
                 
                 <hr style="border:1px solid var(--border); margin:15px 0;">
                 <div class="setting-item" style="display:flex; justify-content:space-between; align-items:center;">
-                    <label style="margin-bottom:0;" title="หากเกิดปัญหาในการดูรายละเอียด โปรดเชื่อมต่อใหม่">ดูรายละเอียด (Stats)</label>
+                    <label style="margin-bottom:0;" title="หากเกิดปัญหาในการดูรายละเอียด ลองสลับกันแชร์จอกับอีกฝ่าย">ดูรายละเอียด (Stats)</label>
                     <input type="checkbox" onmouseover="this.style.transform='scale(1.3)';" onmouseout="this.style.transform='scale(1)';" id="show-stats-toggle" onchange="toggleStatsOverlay()" style="width:auto; cursor:pointer;">
                 </div>
 
@@ -451,7 +452,7 @@
                         <option value="1080">High Performance </option>
                     </select>
                 </div>
-                <label style="font-size:10px; color:#aaa; text-align: center; display:block;" > P2P Stream version 1.3.8 </label>  
+                <label style="font-size:10px; color:#aaa; text-align: center; display:block;" > P2P Stream version 1.3.8a </label>  
             </div>
 
             <div id="stats-overlay" style="display:none; position:absolute; top:15px; left:15px; background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; font-family: 'Courier New', monospace; font-size:11px; color:#00ff00; border:1px solid #333; z-index:100; pointer-events:none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
@@ -557,12 +558,12 @@
         const q = document.getElementById('share-quality').value;
         const isUnlimited = document.getElementById('unlimited-mode').checked;
         
-        let bitrate = 15000; 
+        let bitrate = 8000; 
         if (q === '480') bitrate = 2000;         
         else if (q === '720') bitrate = 7000;    
         else if (q === '1080') bitrate = 12000; 
-        else if (q === '1440') bitrate = 25000; 
-        else if (q === '2160') bitrate = 40000;  
+        else if (q === '1440') bitrate = 20000; 
+        else if (q === '2160') bitrate = 30000;  
 
         if (!isUnlimited) bitrate = Math.floor(bitrate / 2);
 
@@ -571,11 +572,17 @@
         newSdp = newSdp.replace(/(c=IN IP[46] [^\r\n]+)\r\n/g, `$1\r\nb=AS:${bitrate}\r\n`);
         
         // คืนค่าความชัดระดับเทพ (256000) พร้อมระบบ Stereo
-        newSdp = newSdp.replace('useinbandfec=1', 'useinbandfec=1;stereo=1;sprop-stereo=1;maxaveragebitrate=256000;cbr=1');
+        //newSdp = newSdp.replace('useinbandfec=1', 'useinbandfec=1;stereo=1;sprop-stereo=1;maxaveragebitrate=256000;cbr=1');
+        
+        // คงค่าเสียงสเตอริโอ โดยไม่บังคับ bitrate
+        newSdp = newSdp.replace('useinbandfec=1', 'useinbandfec=1;stereo=1;sprop-stereo=1');
         return newSdp;
     };
 
     let myStream = null, isSfxOn = true, connections = {}, peerNames = {}, draftFile = null, viewersOfMe = new Set(), currentlyWatching = null, lastNotifyTime = {}, leavingPeers = new Set();
+    let myMicStream = null; // สตรีมสำหรับไมโครโฟน
+    let peerAudioStreams = {}; // เก็บ Audio Objects ของเพื่อน
+
     let myName = localStorage.getItem('p2p-username') 
     || "User-" + Math.floor(Math.random()*100);
     document.getElementById('user-name').value = myName;
@@ -629,13 +636,35 @@
         call.answer(myStream, { sdpTransform: setHighQuality }); 
         call.on('stream', stm => {
             const safeName = peerNames[call.peer] || ("User-" + call.peer.substring(0,4));
-            addVideo(call.peer, stm, safeName);
-            const now = Date.now();
-        if (!lastNotifyTime[call.peer] || (now - lastNotifyTime[call.peer] > 3000)) {
-            addMsg({ type: 'sys', msg: `📢 ${safeName} กำลังแชร์หน้าจอ` });
-            lastNotifyTime[call.peer] = now;
-            playStreamSound();
-        }
+
+            // ตรวจสอบว่าสตรีมมีแทร็กวิดีโอหรือไม่
+            if (stm.getVideoTracks().length > 0) {
+                // นี่คือสตรีมวิดีโอ (แชร์หน้าจอ)
+                addVideo(call.peer, stm, safeName);
+                const now = Date.now();
+                if (!lastNotifyTime[call.peer] || (now - lastNotifyTime[call.peer] > 3000)) {
+                    addMsg({ type: 'sys', msg: `📢 ${safeName} กำลังแชร์หน้าจอ` });
+                    lastNotifyTime[call.peer] = now;
+                    playStreamSound();
+                }
+            } else if (stm.getAudioTracks().length > 0) {
+                // นี่คือสตรีมเสียงอย่างเดียว (ไมโครโฟน)
+                console.log(`🎤 Receiving mic audio from ${call.peer}`);
+                const audioEl = document.createElement('audio');
+                audioEl.srcObject = stm;
+                audioEl.autoplay = true;
+                audioEl.playsInline = true;
+                
+                // ถ้ามี audio element เก่าอยู่ ให้ลบทิ้งก่อน
+                if (peerAudioStreams[call.peer]) {
+                    peerAudioStreams[call.peer].srcObject = null;
+                    peerAudioStreams[call.peer].remove();
+                }
+                
+                peerAudioStreams[call.peer] = audioEl;
+                document.body.appendChild(audioEl); // ซ่อนไว้ใน body ก็พอ
+                addMsg({ type: 'sys', msg: `🎤 ${safeName} เปิดไมโครโฟน` });
+            }
         }); 
         call.on('error', () => { addMsg({ type: 'sys', msg: `❌ Media call กับ ${call.peer} ล้มเหลว` }); });
     });
@@ -848,6 +877,10 @@
             conn.send({ type: 'req-stream-sync' });
             if (myStream) {
                 setTimeout(() => { peer.call(conn.peer, myStream, { sdpTransform: setHighQuality }); }, 1500);
+            }
+            // ถ้าไมโครโฟนเราเปิดอยู่ ให้ส่งสตรีมเสียงไปให้เพื่อนใหม่ด้วย
+            if (myMicStream && myMicStream.getAudioTracks()[0].enabled) {
+                setTimeout(() => { peer.call(conn.peer, myMicStream); }, 1500);
             }
             updateUI(); 
         });
@@ -1148,6 +1181,54 @@
         }
         delete connections[peerId];
             }
+
+    async function toggleMic() {
+        const micBtn = document.getElementById('mic-btn');
+        try {
+            if (myMicStream) {
+                // ถ้ามีสตรีมอยู่แล้ว ให้สลับการเปิด/ปิด
+                const audioTrack = myMicStream.getAudioTracks()[0];
+                audioTrack.enabled = !audioTrack.enabled;
+
+                if (audioTrack.enabled) {
+                    micBtn.style.background = '#23a559'; // Green
+                    micBtn.innerHTML = '🎤 Mic On';
+                    addMsg({ type: 'sys', msg: '🎙️ คุณเปิดไมโครโฟน' });
+                } else {
+                    micBtn.style.background = '#f44336'; // Red
+                    micBtn.innerHTML = '🎤 Mic Off';
+                    addMsg({ type: 'sys', msg: '🔇 คุณปิดไมโครโฟน' });
+                }
+            } else {
+                // ถ้ายังไม่มีสตรีม ให้สร้างใหม่
+                myMicStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { 
+                        echoCancellation: true, 
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    } 
+                });
+                
+                const audioTrack = myMicStream.getAudioTracks()[0];
+                audioTrack.enabled = true; // เริ่มแบบเปิดไว้เลย
+
+                micBtn.style.background = '#23a559'; // Green
+                micBtn.innerHTML = '🎤 Mic On';
+                addMsg({ type: 'sys', msg: '🎙️ คุณได้เปิดไมโครโฟน' });
+
+                // ส่งสตรีมเสียงนี้ไปให้ทุกคนที่เชื่อมต่ออยู่
+                Object.keys(connections).forEach(peerId => {
+                    console.log(`📞 Calling ${peerId} with mic stream.`);
+                    peer.call(peerId, myMicStream);
+                });
+            }
+        } catch (err) {
+            console.error("Mic Error:", err);
+            alert("เกิดข้อผิดพลาดในการเข้าถึงไมโครโฟน");
+            micBtn.style.background = '#f44336';
+            micBtn.innerHTML = '🎤 Mic Error';
+        }
+    }
 
     function toggleSystemAudio() {
         if (!myStream) return;
@@ -1833,10 +1914,9 @@ function toggleStatsOverlay() {
 
     document.getElementById('stat-res').innerText = fv.videoWidth + "x" + fv.videoHeight;
 
-    // เตรียมตัวแปร lastFrames เพิ่มเข้ามาเพื่อใช้คำนวณ FPS ด้วยตัวเอง
+    // lastSsrc เพิ่มเข้ามาเพื่อตรวจจับการเริ่มสตรีมใหม่
     if (!streamStatsMap[ownerId]) {
-        streamStatsMap[ownerId] = { lastBytes: 0, lastTime: 0, lastFrames: 0 };
-        return;
+        streamStatsMap[ownerId] = { lastBytes: 0, lastTime: 0, lastFrames: 0, lastSsrc: null };
     }
 
     let pc = null; 
@@ -1879,34 +1959,35 @@ function toggleStatsOverlay() {
                 const now = report.timestamp;
                 const bytes = isLocal ? report.bytesSent : report.bytesReceived;
                 const currentFrames = isLocal ? report.framesSent : report.framesReceived;
+                const currentSsrc = report.ssrc; // ดึงค่า SSRC ของสตรีมปัจจุบัน
+                const ownerStats = streamStatsMap[ownerId];
 
-                // --- ป้องกันบั๊กเปิด/ปิดแชร์ใหม่ หรือเน็ตหลุดค้างเกิน 2 วินาที ---
-                if (bytes < streamStatsMap[ownerId].lastBytes || (now - streamStatsMap[ownerId].lastTime) > 2000) {
-                    streamStatsMap[ownerId].lastBytes = bytes;
-                    streamStatsMap[ownerId].lastTime = now;
-                    streamStatsMap[ownerId].lastFrames = currentFrames || 0;
-                    return; // ข้ามไปก่อนเพื่อตั้งหลักเริ่มนับใหม่
-                }
+                // --- [REVISED 2.0] ตรวจจับและคำนวณสถิติด้วย if-else ---
+                const needsReset = (ownerStats.lastSsrc && currentSsrc && ownerStats.lastSsrc !== currentSsrc) || 
+                                   bytes < ownerStats.lastBytes || 
+                                   (now - ownerStats.lastTime) > 2000;
 
-                if (streamStatsMap[ownerId].lastTime > 0) {
-                    const deltaBytes = bytes - streamStatsMap[ownerId].lastBytes;
-                    const deltaTime = now - streamStatsMap[ownerId].lastTime;
+                if (!needsReset && ownerStats.lastTime > 0) {
+                    // คำนวณค่าต่างๆ เมื่อสตรีมมีความต่อเนื่อง
+                    const deltaBytes = bytes - ownerStats.lastBytes;
+                    const deltaTime = now - ownerStats.lastTime;
                     
                     if (deltaTime > 0 && deltaBytes >= 0) {
                         // 1. คำนวณ Bitrate
                         const bitrate = ((deltaBytes * 8) / (deltaTime / 1000)) / 1000;
                         document.getElementById('stat-bitrate').innerText = Math.max(0, Math.round(bitrate));
 
-                        // 2. คำนวณ FPS อย่างแม่นยำ (แก้บั๊กเลขหลักพัน)
+                        // 2. คำนวณ FPS
                         let fps = report.framesPerSecond; 
-                        // ถ้า Browser ไม่คายค่า FPS ออกมาตรงๆ เราจะนำ "ยอดเฟรมใหม่ - ยอดเฟรมเก่า" มาคำนวณหา FPS เอง
-                        if (fps === undefined && currentFrames !== undefined && streamStatsMap[ownerId].lastFrames !== undefined) {
-                            const deltaFrames = currentFrames - streamStatsMap[ownerId].lastFrames;
+                        if (fps === undefined && currentFrames !== undefined && ownerStats.lastFrames !== undefined) {
+                            const deltaFrames = currentFrames - ownerStats.lastFrames;
                             fps = (deltaFrames * 1000) / deltaTime;
                         }
                         document.getElementById('stat-fps').innerText = Math.max(0, Math.round(fps || 0));
                     }
                 }
+                // ถ้า needsReset เป็น true บล็อกข้างบนจะถูกข้ามไป
+                // ทำให้รอบนี้เป็นการตั้งค่าพื้นฐานเฉยๆ และการคำนวณจะเริ่มในรอบถัดไป
 
                 if (report.jitter) {
                     document.getElementById('stat-ping').innerText = Math.round(report.jitter * 1000);
@@ -1916,10 +1997,11 @@ function toggleStatsOverlay() {
                     document.getElementById('stat-loss').innerText = loss.toFixed(2);
                 }
 
-                // บันทึกค่าไว้ใช้คำนวณในวินาทีถัดไป
-                streamStatsMap[ownerId].lastBytes = bytes;
-                streamStatsMap[ownerId].lastTime = now;
-                streamStatsMap[ownerId].lastFrames = currentFrames || 0;
+                // บันทึกค่าล่าสุดไว้เสมอสำหรับรอบถัดไป
+                ownerStats.lastBytes = bytes;
+                ownerStats.lastTime = now;
+                ownerStats.lastFrames = currentFrames || 0;
+                ownerStats.lastSsrc = currentSsrc;
             }
         });
 
