@@ -1804,7 +1804,7 @@
     function applyFilters() { const v = document.getElementById('focus-video'); v.style.filter = `brightness(${document.getElementById('f-bright').value}%) contrast(${document.getElementById('f-contrast').value}%) saturate(${document.getElementById('f-saturate').value}%)`; v.style.imageRendering = document.getElementById('f-sharp-mode').value; }
     function resetFilters() { document.getElementById('f-bright').value = 100; document.getElementById('f-contrast').value = 100; document.getElementById('f-saturate').value = 100; document.getElementById('f-sharp-mode').value = 'auto'; applyFilters(); }
     function updateUI() { const l = document.getElementById('peer-list'); l.innerHTML = `<li style="color:var(--accent); font-weight:bold;">● ${myName} (คุณ)</li>`; Object.values(peerNames).forEach(n => l.innerHTML += `<li>● ${n}</li>`); document.getElementById('count').innerText = Object.keys(peerNames).length + 1; }
-    function toggleSidebar() { document.getElementById('sidebar-container').classList.toggle('collapsed'); }
+    function toggleSidebar() { const c = document.getElementById('sidebar-container'); const b = document.getElementById('toggle-btn'); c.classList.toggle('collapsed'); b.innerText = c.classList.contains('collapsed') ? '❮' : '❯'; }
     function toggleOverlay() { const o = document.getElementById('overlay'); o.style.display = o.style.display==='block'?'none':'block'; }
     function toggleSettings() { const p = document.getElementById('settings-popup'); p.style.display = p.style.display==='block'?'none':'block'; }
     function toggleSfx() { isSfxOn = !isSfxOn; document.getElementById('sfx-btn').innerText = isSfxOn ? "🔊" : "🔇"; }
